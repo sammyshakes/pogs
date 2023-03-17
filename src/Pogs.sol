@@ -1,20 +1,31 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../lib/openzeppelin-contracts/contracts/security";
+import "../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import "../lib/erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
-contract Pogs is ERC721AQueryable, Ownable {
+contract Pogs is ERC721AQueryable, Ownable, Pausable, ReentrancyGuard {
+    // ERRORS
+    error MaxAllowedPublicSaleMints();
+    
     // PUBLIC VARS
-
     uint256 public mintPrice = 0.01 ether;
-    uint256 public maxSupply = 10_000;
+    uint256 public maxSupply = 3000;
+    uint16 public maxMints = 9;   
     string private baseURI;
+
+    // PRIVATE VARS
+    mapping(address => uint8) private _mints;
 
     constructor() {}
 
     function mint(uint256 amount) external payable {
+        if(_mints[_msgSender()] + amount > maxMints) revert MaxAllowedPublicSaleMints();
+
         require(msg.value >= mintPrice * amount, "Did not send enough ether");
         require(totalSupply() + amount <= maxSupply, "Max amount reached");
 
@@ -66,6 +77,10 @@ contract Pogs is ERC721AQueryable, Ownable {
 
         (sent, ) = owner().call{value: totalAmount}("");
         require(sent, "Main: Failed to send funds");
+    }
+
+     function getMintCount(address user) external view returns (uint256) {
+        return _mints[user];
     }
 
     //  ADMIN ONLY //

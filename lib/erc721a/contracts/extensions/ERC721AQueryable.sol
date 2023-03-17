@@ -4,18 +4,15 @@
 
 pragma solidity ^0.8.4;
 
-import "./IERC721AQueryable.sol";
-import "../ERC721A.sol";
+import './IERC721AQueryable.sol';
+import '../ERC721A.sol';
 
 /**
  * @title ERC721AQueryable.
  *
  * @dev ERC721A subclass with convenience query functions.
  */
-abstract contract ERC721AQueryable is
-    ERC721A("POGS", "POG"),
-    IERC721AQueryable
-{
+abstract contract ERC721AQueryable is ERC721A, IERC721AQueryable {
     /**
      * @dev Returns the `TokenOwnership` struct at `tokenId` without reverting.
      *
@@ -40,9 +37,7 @@ abstract contract ERC721AQueryable is
      * - `burned = false`
      * - `extraData = <Extra data at start of ownership>`
      */
-    function explicitOwnershipOf(
-        uint256 tokenId
-    ) public view virtual override returns (TokenOwnership memory) {
+    function explicitOwnershipOf(uint256 tokenId) public view virtual override returns (TokenOwnership memory) {
         TokenOwnership memory ownership;
         if (tokenId < _startTokenId() || tokenId >= _nextTokenId()) {
             return ownership;
@@ -58,14 +53,16 @@ abstract contract ERC721AQueryable is
      * @dev Returns an array of `TokenOwnership` structs at `tokenIds` in order.
      * See {ERC721AQueryable-explicitOwnershipOf}
      */
-    function explicitOwnershipsOf(
-        uint256[] calldata tokenIds
-    ) external view virtual override returns (TokenOwnership[] memory) {
+    function explicitOwnershipsOf(uint256[] calldata tokenIds)
+        external
+        view
+        virtual
+        override
+        returns (TokenOwnership[] memory)
+    {
         unchecked {
             uint256 tokenIdsLength = tokenIds.length;
-            TokenOwnership[] memory ownerships = new TokenOwnership[](
-                tokenIdsLength
-            );
+            TokenOwnership[] memory ownerships = new TokenOwnership[](tokenIdsLength);
             for (uint256 i; i != tokenIdsLength; ++i) {
                 ownerships[i] = explicitOwnershipOf(tokenIds[i]);
             }
@@ -126,11 +123,7 @@ abstract contract ERC721AQueryable is
             if (!ownership.burned) {
                 currOwnershipAddr = ownership.addr;
             }
-            for (
-                uint256 i = start;
-                i != stop && tokenIdsIdx != tokenIdsMaxLength;
-                ++i
-            ) {
+            for (uint256 i = start; i != stop && tokenIdsIdx != tokenIdsMaxLength; ++i) {
                 ownership = _ownershipAt(i);
                 if (ownership.burned) {
                     continue;
@@ -160,20 +153,14 @@ abstract contract ERC721AQueryable is
      * multiple smaller scans if the collection is large enough to cause
      * an out-of-gas error (10K collections should be fine).
      */
-    function _tokensOfOwner(
-        address owner
-    ) internal view returns (uint256[] memory) {
+    function _tokensOfOwner(address owner) internal view returns (uint256[] memory) {
         unchecked {
             uint256 tokenIdsIdx;
             address currOwnershipAddr;
             uint256 tokenIdsLength = balanceOf(owner);
             uint256[] memory tokenIds = new uint256[](tokenIdsLength);
             TokenOwnership memory ownership;
-            for (
-                uint256 i = _startTokenId();
-                tokenIdsIdx != tokenIdsLength;
-                ++i
-            ) {
+            for (uint256 i = _startTokenId(); tokenIdsIdx != tokenIdsLength; ++i) {
                 ownership = _ownershipAt(i);
                 if (ownership.burned) {
                     continue;
