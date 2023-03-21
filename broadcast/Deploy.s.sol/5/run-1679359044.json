@@ -20,58 +20,14 @@
       "additionalContracts": []
     }
   ],
-  "receipts": [
-    {
-      "transactionHash": "0x8ede345943b257aef5da9075cb9ab6e12279e1f8c69ee5ce00bab4c3795d8c7d",
-      "transactionIndex": "0x7",
-      "blockHash": "0x7c0dbe27de701876592fc5b121a08fdac6a429aed0831c7e489c0a2f3618a0b1",
-      "blockNumber": "0x849aab",
-      "from": "0x42C7eF198f8aC9888E2B1b73e5B71f1D4535194A",
-      "to": null,
-      "cumulativeGasUsed": "0x231e86",
-      "gasUsed": "0x206af2",
-      "contractAddress": "0x377025Aae0a9664F4196c644E4Cbba8fC6204eC4",
-      "logs": [
-        {
-          "address": "0x377025Aae0a9664F4196c644E4Cbba8fC6204eC4",
-          "topics": [
-            "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x00000000000000000000000042c7ef198f8ac9888e2b1b73e5b71f1d4535194a"
-          ],
-          "data": "0x",
-          "blockHash": "0x7c0dbe27de701876592fc5b121a08fdac6a429aed0831c7e489c0a2f3618a0b1",
-          "blockNumber": "0x849aab",
-          "transactionHash": "0x8ede345943b257aef5da9075cb9ab6e12279e1f8c69ee5ce00bab4c3795d8c7d",
-          "transactionIndex": "0x7",
-          "logIndex": "0x0",
-          "removed": false
-        },
-        {
-          "address": "0x377025Aae0a9664F4196c644E4Cbba8fC6204eC4",
-          "topics": [
-            "0x62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a258"
-          ],
-          "data": "0x00000000000000000000000042c7ef198f8ac9888e2b1b73e5b71f1d4535194a",
-          "blockHash": "0x7c0dbe27de701876592fc5b121a08fdac6a429aed0831c7e489c0a2f3618a0b1",
-          "blockNumber": "0x849aab",
-          "transactionHash": "0x8ede345943b257aef5da9075cb9ab6e12279e1f8c69ee5ce00bab4c3795d8c7d",
-          "transactionIndex": "0x7",
-          "logIndex": "0x1",
-          "removed": false
-        }
-      ],
-      "status": "0x1",
-      "logsBloom": "0x00000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000001000000000400000000000000000000000000020000000000000000000880000000010000000000000000000000400000000000000000040008000000000000000000000000000000000000000000000000000000000020800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000400000000000000000000000000000000000000",
-      "type": "0x2",
-      "effectiveGasPrice": "0x1a8243f5b"
-    }
-  ],
+  "receipts": [],
   "libraries": [],
-  "pending": [],
+  "pending": [
+    "0x8ede345943b257aef5da9075cb9ab6e12279e1f8c69ee5ce00bab4c3795d8c7d"
+  ],
   "path": "/Users/robertdahl/Documents/PW/pog-mint-contract/broadcast/Deploy.s.sol/5/run-latest.json",
   "returns": {},
-  "timestamp": 1679359057,
+  "timestamp": 1679359044,
   "chain": 5,
   "multi": false,
   "commit": "28f08d4"

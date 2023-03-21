@@ -1,27 +1,32 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import "../lib/openzeppelin-contracts/contracts/security";
-import "../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import "../lib/erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../lib/openzeppelin-contracts/contracts/security/Pausable.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
-contract Pogs is ERC721AQueryable, Ownable, Pausable, ReentrancyGuard {
+contract Pogs is ERC721AQueryable, Ownable, Pausable {
+
+    constructor() ERC721A("Pogs", "POG") {
+        _pause();
+    }
+
     // ERRORS
     error MaxAllowedPublicSaleMints();
     
     // PUBLIC VARS
     uint256 public mintPrice = 0.01 ether;
     uint256 public maxSupply = 3000;
-    uint16 public maxMints = 9;   
+    uint16 public maxMints = 9; 
+    
+    bool public saleActive;  
+
     string private baseURI;
 
     // PRIVATE VARS
     mapping(address => uint8) private _mints;
 
-    constructor() {}
 
     function mint(uint256 amount) external payable {
         if(_mints[_msgSender()] + amount > maxMints) revert MaxAllowedPublicSaleMints();
@@ -81,6 +86,11 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable, ReentrancyGuard {
 
      function getMintCount(address user) external view returns (uint256) {
         return _mints[user];
+    }
+
+    function setSaleActive(bool started) external onlyOwner {
+        saleActive = started;
+        if (saleActive) saleActive = false;
     }
 
     //  ADMIN ONLY //
