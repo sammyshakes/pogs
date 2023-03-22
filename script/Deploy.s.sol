@@ -17,10 +17,19 @@ contract Deploy is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET_DEPLOYER");
 
+        // get payees
+        address[] memory payees = new address[](2);
+        payees[0] = address(1);
+        payees[1] = address(2);
+        //get shares
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = 40;
+        shares[1] = 60;
+
         //Deploy Contracts
         vm.startBroadcast(deployerPrivateKey);
 
-        pogs = new Pogs(signer, signer);
+        pogs = new Pogs(signer, signer, payees, shares);
 
         vm.stopBroadcast();
     }

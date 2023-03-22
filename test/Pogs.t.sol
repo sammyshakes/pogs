@@ -37,6 +37,8 @@ contract PogsTest is Test {
     address public user1 = address(1);
     address public user2 = address(0x1338);
     address public user3 = address(0x1339);
+    address public payee1 = address(0x1340);
+    address public payee2 = address(0x1341);
 
     address public withdrawAddress = address(0x1340);
     address public signer;
@@ -52,8 +54,17 @@ contract PogsTest is Test {
     uint256 totalTickets;
 
     function setUp() public {
+        // get payees
+        address[] memory payees = new address[](2);
+        payees[0] = payee1;
+        payees[1] = payee2;
+        //get shares
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = 400;
+        shares[1] = 60;
+
         signer = vm.addr(signerPrivateKey);
-        pogs = new Pogs(signer, withdrawAddress);
+        pogs = new Pogs(signer, withdrawAddress, payees, shares);
         console.log("signer", signer);
 
         //set active session
@@ -72,13 +83,76 @@ contract PogsTest is Test {
         totalTickets = pogs.maxSupply();
     }
 
+    function testPaymentSplitter() public {
+        // get payees
+        address[] memory payees = new address[](2);
+        payees[0] = payee1;
+        payees[1] = payee2;
+        //get shares
+        uint256 shares1 = 40;
+        uint256 shares2 = 60;
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = shares1;
+        shares[1] = shares2;
+
+        signer = vm.addr(signerPrivateKey);
+        Pogs pogs1 = new Pogs(signer, withdrawAddress, payees, shares);
+
+        assertEq(payee1, pogs1.payee(0));
+        assertEq(payee2, pogs1.payee(1));
+
+        uint256 totalShares = pogs1.totalShares();
+        assertEq(totalShares, shares1 + shares2);
+        console.log("totalShares", totalShares);
+
+        uint256 totalReleased = pogs1.totalReleased();
+        console.log("totalReleased", totalReleased);
+
+        uint256 sharesPayee1 = pogs1.shares(payee1);
+        assertEq(sharesPayee1, shares1);
+        console.log("sharesPayee1", sharesPayee1);
+
+        uint256 sharesPayee2 = pogs1.shares(payee2);
+        assertEq(sharesPayee2, shares2);
+        console.log("sharesPayee2", sharesPayee2);
+
+        uint256 releaseAmountPayee1 = pogs1.releasable(payee1);
+        assertEq(releaseAmountPayee1, 0);
+        console.log("releaseAmountPayee1", releaseAmountPayee1);
+
+        uint256 releaseAmountPayee2 = pogs1.releasable(payee2);
+        assertEq(releaseAmountPayee2, 0);
+        console.log("releaseAmountPayee2", releaseAmountPayee2);
+
+        //set public sale
+        pogs1.setSession(3);
+        uint256 mintPrice = pogs1.mintPrice();
+        uint256 amount = 5;
+
+        hevm.prank(user1, user1);
+        pogs1.mint{value: amount * mintPrice}(amount);
+
+        uint256 expectedSplit1 = (amount * mintPrice * shares1) /
+            (shares1 + shares2);
+        uint256 expectedSplit2 = (amount * mintPrice * shares2) /
+            (shares1 + shares2);
+
+        releaseAmountPayee1 = pogs1.releasable(payee1);
+        assertEq(releaseAmountPayee1, expectedSplit1);
+        console.log("releaseAmountPayee1 after mint", releaseAmountPayee1);
+
+        releaseAmountPayee2 = pogs1.releasable(payee2);
+        assertEq(releaseAmountPayee2, expectedSplit2);
+        console.log("releaseAmountPayee2 after mint", releaseAmountPayee2);
+    }
+
     function testPublicMint() public {
         //set active session to public mint
         uint256 amount = 5;
         uint256 mintPrice = pogs.mintPrice();
         pogs.setSession(3);
         hevm.prank(user1, user1);
-        pogs.mint{value: amount * mintPrice}(1);
+        pogs.mint{value: amount * mintPrice}(amount);
     }
 
     function testInitialMap() public {

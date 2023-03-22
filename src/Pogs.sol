@@ -5,8 +5,9 @@ import "../lib/erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import "../lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
+import "../lib/openzeppelin-contracts/contracts/finance/PaymentSplitter.sol";
 
-contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
+contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
     using ECDSA for bytes32;
 
     enum ActiveSession {
@@ -16,7 +17,12 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         PUBLIC
     }
 
-    constructor(address _signer, address _withdrawer) ERC721A("Pogs", "POG") {
+    constructor(
+        address _signer,
+        address _withdrawer,
+        address[] memory _payees,
+        uint256[] memory _shares
+    ) ERC721A("Pogs", "POG") PaymentSplitter(_payees, _shares) {
         require(_signer != address(0x00), "Cannot be zero address");
         require(_withdrawer != address(0x00), "Cannot be zero address");
         allowListSigner = _signer;
@@ -85,7 +91,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         }
 
         //mint
-        _mint(msg.sender, ticketNumbers.length);
+        _mint(_msgSender(), ticketNumbers.length);
     }
 
     function verifyTicket(
@@ -254,8 +260,6 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         require(totalSupply() + amount <= maxSupply, "Max amount reached");
         _safeMint(receiver, amount);
     }
-
-    receive() external payable {}
 
     fallback() external payable {}
 }
