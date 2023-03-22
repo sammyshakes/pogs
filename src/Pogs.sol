@@ -3,11 +3,10 @@ pragma solidity ^0.8.13;
 
 import "../lib/erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import "../lib/openzeppelin-contracts/contracts/security/Pausable.sol";
 import "../lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
-contract Pogs is ERC721AQueryable, Ownable, Pausable, ERC2981 {
+contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     using ECDSA for bytes32;
 
     enum ActiveSession {
@@ -24,7 +23,6 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable, ERC2981 {
         withdrawAddress = _withdrawer;
         //initialize tickets
         _addTickets(maxSupply);
-        _pause();
     }
 
     // CONSTANTS
@@ -47,7 +45,7 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable, ERC2981 {
     mapping(uint256 => uint256) public ticketMap;
     ActiveSession public activeSession = ActiveSession.INACTIVE;
 
-    function mint(uint256 amount) external payable whenNotPaused {
+    function mint(uint256 amount) external payable {
         require(msg.sender == tx.origin, "EOA Only");
         require(activeSession == ActiveSession.PUBLIC, "Minting Not Active");
         require(msg.value >= mintPrice * amount, "Did not send enough ether");
@@ -60,7 +58,7 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable, ERC2981 {
     function mintWithTicket(
         uint256[] calldata ticketNumbers,
         bytes[] calldata signatures
-    ) external payable whenNotPaused {
+    ) external payable {
         require(msg.sender == tx.origin, "EOA Only");
         require(ticketNumbers.length == signatures.length, "Mismatch Arrays");
         require(
@@ -239,11 +237,6 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable, ERC2981 {
 
     function getMintCount(address user) external view returns (uint256) {
         return _mints[user];
-    }
-
-    function setPaused(bool _paused) external onlyOwner {
-        if (_paused) _pause();
-        else _unpause();
     }
 
     //  ADMIN ONLY //

@@ -69,9 +69,6 @@ contract PogsTest is Test {
         hevm.deal(user2, 1 ether);
         hevm.deal(user3, 1 ether);
 
-        //unpause contract
-        pogs.setPaused(false);
-
         totalTickets = pogs.maxSupply();
     }
 
