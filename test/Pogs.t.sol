@@ -88,23 +88,14 @@ contract PogsTest is Test {
         assertEq(pogs.name(), "Pogs");
         assertEq(testMax, type(uint256).max);
 
-        assertEq(pogs.ticketMap(0), type(uint256).max);
-        assertEq(pogs.ticketMap(1), type(uint256).max);
-        assertEq(pogs.ticketMap(2), type(uint256).max);
-        assertEq(pogs.ticketMap(3), type(uint256).max);
-        assertEq(pogs.ticketMap(4), type(uint256).max);
+        uint ticketMapBins = totalTickets / 256 + 1;
+
+        for (uint i; i < ticketMapBins; i++) {
+            assertEq(pogs.ticketMap(i), type(uint256).max);
+        }
+
         assertEq(pogs.ticketMap(totalTickets / 256), type(uint256).max);
         assertEq(pogs.ticketMap(totalTickets / 256 + 1), 0);
-    }
-
-    function testAddTickets() public {
-        uint256 tickets = pogs.maxSupply();
-
-        assertEq(pogs.ticketMap(0), type(uint256).max);
-        assertEq(pogs.ticketMap(1), type(uint256).max);
-        assertEq(pogs.ticketMap(2), type(uint256).max);
-        assertEq(pogs.ticketMap(tickets / 256), type(uint256).max);
-        assertEq(pogs.ticketMap(tickets / 256 + 1), 0);
     }
 
     function testHashing() public {
@@ -136,7 +127,7 @@ contract PogsTest is Test {
         //set active session to WAITLIST
         pogs.setSession(2);
         hevm.expectRevert();
-        hevm.prank(user1);
+        hevm.prank(user1, user1);
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
 
         //set active session to ALLOWLIST
@@ -144,15 +135,15 @@ contract PogsTest is Test {
 
         //revert "not allowed" if wrong user tries to use it
         hevm.expectRevert();
-        hevm.prank(user2);
+        hevm.prank(user2, user2);
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
 
-        hevm.prank(user3);
+        hevm.prank(user3, user3);
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
 
         //revert "already minted" if user tries to use it to mint again
         hevm.expectRevert();
-        hevm.prank(user1);
+        hevm.prank(user3, user3);
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
 
         //check user 1 balance
@@ -166,10 +157,13 @@ contract PogsTest is Test {
         pogs.withdraw();
 
         // now from proper address
+        uint256 bal = withdrawAddress.balance;
+        console.log("bal withdrawAddress before = ", bal);
         hevm.prank(withdrawAddress);
         pogs.withdraw();
-        uint256 bal = withdrawAddress.balance;
-        console.log("bal withdrawAddress", bal);
+        assertTrue(withdrawAddress.balance > bal);
+        bal = withdrawAddress.balance;
+        console.log("bal withdrawAddress after = ", bal);
         assertEq(withdrawAddress.balance, pogs.mintPrice());
     }
 
@@ -204,7 +198,7 @@ contract PogsTest is Test {
         bytes[] memory sigs = new bytes[](1);
         sigs[0] = signature;
 
-        hevm.prank(user3);
+        hevm.prank(user3, user3);
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
     }
 
@@ -262,18 +256,18 @@ contract PogsTest is Test {
         assertEq(pogs.mintPrice(), 1 ether);
     }
 
-    // function testPogs() public {
-    //     string memory name = pogs.name();
-    //     console.log(name);
+    function testPogs() public {
+        string memory name = pogs.name();
+        console.log(name);
 
-    //     string
-    //         memory baseUrl = "ipfs://bafybeibewadqajwgmka7357h7k7v2fw4jgekmv5di3vryr6lyfanzv3ioq/";
-    //     pogs.setBaseURI(baseUrl);
+        // set base uri
+        string
+            memory baseUrl = "ipfs://bafybeibewadqajwgmka7357h7k7v2fw4jgekmv5di3vryr6lyfanzv3ioq/";
+        pogs.setBaseURI(baseUrl);
 
-    //     hevm.prank(user1);
-    //     pogs.mint{value: 0.04 ether}(4);
-
-    //     string memory retrievedURI = pogs.tokenURI(1);
-    //     console.log(retrievedURI);
-    // }
+        // hevm.prank(user1);
+        pogs.mintForTeam(user1, 1);
+        string memory retrievedURI = pogs.tokenURI(1);
+        console.log(retrievedURI);
+    }
 }
