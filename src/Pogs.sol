@@ -5,9 +5,8 @@ import "../lib/erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import "../lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol";
 import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
-import "../lib/openzeppelin-contracts/contracts/finance/PaymentSplitter.sol";
 
-contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
+contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     using ECDSA for bytes32;
 
     enum ActiveSession {
@@ -36,12 +35,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
     mapping(uint256 => uint256) public ticketMap;
     ActiveSession public activeSession = ActiveSession.INACTIVE;
 
-    constructor(
-        address _signer,
-        address _withdrawer,
-        address[] memory _payees,
-        uint256[] memory _shares
-    ) ERC721A("Pogs", "POG") PaymentSplitter(_payees, _shares) {
+    constructor(address _signer, address _withdrawer) ERC721A("Pogs", "POG") {
         require(_signer != address(0x00), "Cannot be zero address");
         require(_withdrawer != address(0x00), "Cannot be zero address");
         allowListSigner = _signer;
