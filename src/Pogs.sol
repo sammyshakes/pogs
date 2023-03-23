@@ -3,39 +3,150 @@ pragma solidity ^0.8.13;
 
 import "../lib/erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import "../lib/openzeppelin-contracts/contracts/security/Pausable.sol";
-import "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
+import "../lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
-contract Pogs is ERC721AQueryable, Ownable, Pausable {
+contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
+    using ECDSA for bytes32;
 
-    constructor() ERC721A("Pogs", "POG") {
-        _pause();
+    enum ActiveSession {
+        INACTIVE,
+        ALLOWLIST,
+        WAITLIST,
+        PUBLIC
     }
 
-    // ERRORS
-    error MaxAllowedPublicSaleMints();
-    
-    // PUBLIC VARS
-    uint256 public mintPrice = 0.01 ether;
-    uint256 public maxSupply = 3000;
-    uint16 public maxMints = 9; 
-    
-    bool public saleActive;  
-
-    string private baseURI;
+    // CONSTANTS
+    uint256 constant TICKETS_PER_BIN = 256;
+    uint256 constant TICKET_BINS = 50; // Starting Amount of Bins TICKET_MAX / 256 + 1
+    uint256 constant TICKET_MAX = 12_800; // TICKET_BINS * TICKETS_PER_BIN
 
     // PRIVATE VARS
-    mapping(address => uint8) private _mints;
+    string private baseURI;
+    uint256 private _royaltyPermille = 40; // supports 1 decimal place ex. 40 = 4.0%
 
+    // PUBLIC VARS
+    address public allowListSigner;
+    address public withdrawAddress;
+    address public royaltyAddress;
+    uint256 public mintPrice = 0.01 ether;
+    uint256 public maxSupply = 4_444;
+    uint256 public totalTickets;
+    mapping(uint256 => uint256) public ticketMap;
+    ActiveSession public activeSession = ActiveSession.INACTIVE;
+
+    constructor(address _signer, address _withdrawer) ERC721A("Pogs", "POG") {
+        require(_signer != address(0x00), "Cannot be zero address");
+        require(_withdrawer != address(0x00), "Cannot be zero address");
+        allowListSigner = _signer;
+        withdrawAddress = _withdrawer;
+        //initialize tickets
+        _addTickets(maxSupply);
+    }
 
     function mint(uint256 amount) external payable {
-        if(_mints[_msgSender()] + amount > maxMints) revert MaxAllowedPublicSaleMints();
-
+        require(msg.sender == tx.origin, "EOA Only");
+        require(activeSession == ActiveSession.PUBLIC, "Minting Not Active");
         require(msg.value >= mintPrice * amount, "Did not send enough ether");
         require(totalSupply() + amount <= maxSupply, "Max amount reached");
 
         //mint
-        _safeMint(_msgSender(), amount);
+        _mint(_msgSender(), amount);
+    }
+
+    function mintWithTicket(
+        uint256[] calldata ticketNumbers,
+        bytes[] calldata signatures
+    ) external payable {
+        require(msg.sender == tx.origin, "EOA Only");
+        require(ticketNumbers.length == signatures.length, "Mismatch Arrays");
+        require(
+            totalSupply() + ticketNumbers.length <= maxSupply,
+            "Max amount reached"
+        );
+        require(ticketNumbers.length < 3, "Max 2 Tickets");
+        require(
+            msg.value >= mintPrice * ticketNumbers.length,
+            "Did not send enough ether"
+        );
+
+        for (uint256 i; i < ticketNumbers.length; i++) {
+            require(
+                verifyTicket(
+                    msg.sender, // ensures only verified user can mint
+                    ticketNumbers[i], // ensures a ticket cant be used twice
+                    uint8(activeSession), // ensures ticket can only be used for current session
+                    signatures[i]
+                ),
+                "ticket not valid"
+            );
+            _claimTicket(ticketNumbers[i]); // account for used ticket
+        }
+
+        //mint
+        _mint(_msgSender(), ticketNumbers.length);
+    }
+
+    function verifyTicket(
+        address user,
+        uint256 ticketNumber,
+        uint8 session,
+        bytes memory signature
+    ) public view returns (bool isValid) {
+        if (
+            allowListSigner ==
+            getTicket(user, ticketNumber, session)
+                .toEthSignedMessageHash()
+                .recover(signature)
+        ) isValid = true;
+    }
+
+    function addTickets(uint256 amount) external onlyOwner {
+        _addTickets(amount);
+    }
+
+    function _addTickets(uint256 amount) private {
+        //store how many current bins exist
+        uint256 currentBins;
+        if (totalTickets > 0) currentBins = totalTickets / 256 + 1;
+
+        //calc new amount of bins needed with new tickets added
+        totalTickets += amount;
+        uint256 requiredBins = totalTickets / 256 + 1;
+
+        //check if we need to add bins
+        if (requiredBins > currentBins) {
+            uint256 binsToAdd = requiredBins - currentBins;
+            for (uint256 i; i < binsToAdd; i++) {
+                ticketMap[currentBins + i] = type(uint256).max;
+            }
+        }
+    }
+
+    // This can be used to create the unsigned tickets
+    function getTicket(
+        address user,
+        uint256 ticketNumber,
+        uint8 session
+    ) public pure returns (bytes32) {
+        bytes32 hash = keccak256(abi.encodePacked(user, ticketNumber, session));
+        return hash;
+    }
+
+    function _claimTicket(uint256 ticketNumber) private {
+        require(ticketNumber < TICKET_MAX, "Invalid Ticket Number");
+        //get bin and bit
+        uint256 bin;
+        uint256 bit;
+        unchecked {
+            bin = ticketNumber / TICKETS_PER_BIN;
+            bit = ticketNumber % TICKETS_PER_BIN;
+        }
+
+        uint256 storedBit = (ticketMap[bin] >> bit) & uint256(1);
+        require(storedBit == 1, "ticket already claimed");
+
+        ticketMap[bin] = ticketMap[bin] & ~(uint256(1) << bit);
     }
 
     function tokensOfOwner(
@@ -55,13 +166,30 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable {
         return 1;
     }
 
+    function royaltyInfo(
+        uint256 tokenId,
+        uint256 salePrice
+    ) public view override returns (address receiver, uint256 royaltyAmount) {
+        return (royaltyAddress, (salePrice * _royaltyPermille) / 1000);
+    }
+
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721A, IERC721A) returns (bool) {
-        return super.supportsInterface(interfaceId);
+    ) public view override(ERC721A, IERC721A, ERC2981) returns (bool) {
+        return
+            interfaceId == type(IERC2981).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     // OWNER ONLY //
+    function setRoyaltyPermille(uint256 number) external onlyOwner {
+        _royaltyPermille = number;
+    }
+
+    function setRoyaltyAddress(address addr) external onlyOwner {
+        royaltyAddress = addr;
+    }
+
     function setBaseURI(string calldata uri) external onlyOwner {
         baseURI = uri;
     }
@@ -75,22 +203,35 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable {
         _safeMint(receiver, amount);
     }
 
+    function setAllowListSigner(address _signer) external onlyOwner {
+        require(_signer != address(0x00), "Cannot be zero address");
+        allowListSigner = _signer;
+    }
+
+    // session input should be:
+    // 0 = Inactive, 1 = AllowList, 2 = Waitlist, 3 = Public Sale
+    function setSession(uint8 session) external onlyOwner {
+        activeSession = ActiveSession(session);
+    }
+
     function withdraw() external {
-        require(_msgSender() == owner(), "Owner only");
+        require(withdrawAddress != address(0x00), "Withdraw address not set");
+        require(_msgSender() == withdrawAddress, "Withdraw address only");
         uint256 totalAmount = address(this).balance;
         bool sent;
 
-        (sent, ) = owner().call{value: totalAmount}("");
+        (sent, ) = withdrawAddress.call{value: totalAmount}("");
         require(sent, "Main: Failed to send funds");
     }
 
-     function getMintCount(address user) external view returns (uint256) {
-        return _mints[user];
+    function setWithdrawAddress(address addr) external onlyOwner {
+        require(addr != address(0x00), "Cannot be zero address");
+        withdrawAddress = addr;
     }
 
-    function setSaleActive(bool started) external onlyOwner {
-        saleActive = started;
-        if (saleActive) saleActive = false;
+    function getBalance() external view returns (uint256) {
+        // To access the amount of ether the contract has
+        return address(this).balance;
     }
 
     //  ADMIN ONLY //
@@ -103,13 +244,6 @@ contract Pogs is ERC721AQueryable, Ownable, Pausable {
     function burn(uint256 tokenId) external onlyAdmin {
         _burn(tokenId);
     }
-
-    function mintFromAdmin(address receiver, uint16 amount) external onlyAdmin {
-        require(totalSupply() + amount <= maxSupply, "Max amount reached");
-        _safeMint(receiver, amount);
-    }
-
-    receive() external payable {}
 
     fallback() external payable {}
 }
