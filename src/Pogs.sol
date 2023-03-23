@@ -17,6 +17,25 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
         PUBLIC
     }
 
+    // CONSTANTS
+    uint256 constant TICKETS_PER_BIN = 256;
+    uint256 constant TICKET_BINS = 50; // Starting Amount of Bins TICKET_MAX / 256 + 1
+    uint256 constant TICKET_MAX = 12_800; // TICKET_BINS * TICKETS_PER_BIN
+
+    // PRIVATE VARS
+    string private baseURI;
+    uint256 private _royaltyPermille = 40; // supports 1 decimal place ex. 40 = 4.0%
+
+    // PUBLIC VARS
+    address public allowListSigner;
+    address public withdrawAddress;
+    address public royaltyAddress;
+    uint256 public mintPrice = 0.01 ether;
+    uint256 public maxSupply = 4_444;
+    uint256 public totalTickets;
+    mapping(uint256 => uint256) public ticketMap;
+    ActiveSession public activeSession = ActiveSession.INACTIVE;
+
     constructor(
         address _signer,
         address _withdrawer,
@@ -30,26 +49,6 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
         //initialize tickets
         _addTickets(maxSupply);
     }
-
-    // CONSTANTS
-    uint256 constant TICKETS_PER_BIN = 256;
-    uint256 constant TICKET_BINS = 50; // Starting Amount of Bins TICKET_MAX / 256 + 1
-    uint256 constant TICKET_MAX = 12_800; // TICKET_BINS * TICKETS_PER_BIN
-
-    // PRIVATE VARS
-    string private baseURI;
-    uint256 private _royaltyPermille = 55; // supports 1 decimal place ex. 55 = 5.5%
-    mapping(address => uint8) private _mints;
-
-    // PUBLIC VARS
-    address public allowListSigner;
-    address public withdrawAddress;
-    address public royaltyAddress;
-    uint256 public mintPrice = 0.01 ether;
-    uint256 public maxSupply = 4_444;
-    uint256 public totalTickets;
-    mapping(uint256 => uint256) public ticketMap;
-    ActiveSession public activeSession = ActiveSession.INACTIVE;
 
     function mint(uint256 amount) external payable {
         require(msg.sender == tx.origin, "EOA Only");
@@ -87,7 +86,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
                 ),
                 "ticket not valid"
             );
-            claimTicket(ticketNumbers[i]); // account for used ticket
+            _claimTicket(ticketNumbers[i]); // account for used ticket
         }
 
         //mint
@@ -140,7 +139,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
         return hash;
     }
 
-    function claimTicket(uint256 ticketNumber) private {
+    function _claimTicket(uint256 ticketNumber) private {
         require(ticketNumber < TICKET_MAX, "Invalid Ticket Number");
         //get bin and bit
         uint256 bin;
@@ -151,7 +150,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
         }
 
         uint256 storedBit = (ticketMap[bin] >> bit) & uint256(1);
-        require(storedBit == 1, "already claimed");
+        require(storedBit == 1, "ticket already claimed");
 
         ticketMap[bin] = ticketMap[bin] & ~(uint256(1) << bit);
     }
@@ -241,10 +240,6 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
         return address(this).balance;
     }
 
-    function getMintCount(address user) external view returns (uint256) {
-        return _mints[user];
-    }
-
     //  ADMIN ONLY //
     mapping(address => bool) private _admins;
     modifier onlyAdmin() {
@@ -254,11 +249,6 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981, PaymentSplitter {
 
     function burn(uint256 tokenId) external onlyAdmin {
         _burn(tokenId);
-    }
-
-    function mintFromAdmin(address receiver, uint16 amount) external onlyAdmin {
-        require(totalSupply() + amount <= maxSupply, "Max amount reached");
-        _safeMint(receiver, amount);
     }
 
     fallback() external payable {}
