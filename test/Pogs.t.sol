@@ -40,7 +40,8 @@ contract PogsTest is Test {
     address public payee1 = address(0x1340);
     address public payee2 = address(0x1341);
 
-    address public withdrawAddress = address(0x1340);
+    address public withdrawAddress = address(0x1342);
+    address public royaltyAddress = address(0x1343);
     address public signer;
 
     uint256 testMax =
@@ -55,7 +56,7 @@ contract PogsTest is Test {
 
     function setUp() public {
         signer = vm.addr(signerPrivateKey);
-        pogs = new Pogs(signer, withdrawAddress);
+        pogs = new Pogs(signer, withdrawAddress, royaltyAddress);
         console.log("signer", signer);
 
         //set active session
@@ -71,16 +72,7 @@ contract PogsTest is Test {
         hevm.deal(user2, 1 ether);
         hevm.deal(user3, 1 ether);
 
-        totalTickets = pogs.maxSupply();
-    }
-
-    function testPublicMint() public {
-        //set active session to public mint
-        uint256 amount = 5;
-        uint256 mintPrice = pogs.mintPrice();
-        pogs.setSession(3);
-        hevm.prank(user1, user1);
-        pogs.mint{value: amount * mintPrice}(amount);
+        totalTickets = pogs.totalTickets();
     }
 
     function testInitialMap() public {
@@ -199,6 +191,9 @@ contract PogsTest is Test {
 
         hevm.prank(user3, user3);
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
+
+        //test verify sig after mint
+        assertEq(false, pogs.verifyTicket(user3, ticketNumber, 1, signature));
     }
 
     function testVerifyTicket() public {
@@ -229,6 +224,15 @@ contract PogsTest is Test {
             true,
             pogs.verifyTicket(user3, ticketNumber, session, signature)
         );
+    }
+
+    function testPublicMint() public {
+        //set active session to public mint
+        uint256 amount = 5;
+        uint256 mintPrice = pogs.mintPrice();
+        pogs.setSession(3);
+        hevm.prank(user1, user1);
+        pogs.mint{value: amount * mintPrice}(amount);
     }
 
     function testMaxSupply() public {

@@ -20,8 +20,9 @@ contract Deploy is Script {
         //Deploy Contracts
         vm.startBroadcast(deployerPrivateKey);
 
-        pogs = new Pogs(signer, signer);
+        pogs = new Pogs(signer, signer, signer);
 
         vm.stopBroadcast();
+        // pogs.mintForTeam(signer, 644);
     }
 }

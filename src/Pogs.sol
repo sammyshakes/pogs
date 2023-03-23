@@ -17,38 +17,46 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     }
 
     // CONSTANTS
+    uint256 constant MAX_SUPPLY = 4_444;
     uint256 constant TICKETS_PER_BIN = 256;
-    uint256 constant TICKET_BINS = 50; // Starting Amount of Bins TICKET_MAX / 256 + 1
-    uint256 constant TICKET_MAX = 12_800; // TICKET_BINS * TICKETS_PER_BIN
+    uint256 constant TICKET_BINS = 50; // Starting Amount of Bins: STARTING_TICKETS / 256 + 1
+    uint256 constant STARTING_TICKETS = 12_800; // TICKET_BINS * TICKETS_PER_BIN
 
     // PRIVATE VARS
     string private baseURI;
+    string private unrevealedURI;
     uint256 private _royaltyPermille = 40; // supports 1 decimal place ex. 40 = 4.0%
 
     // PUBLIC VARS
+    bool public isRevealed = false;
     address public allowListSigner;
     address public withdrawAddress;
     address public royaltyAddress;
     uint256 public mintPrice = 0.01 ether;
-    uint256 public maxSupply = 4_444;
     uint256 public totalTickets;
     mapping(uint256 => uint256) public ticketMap;
     ActiveSession public activeSession = ActiveSession.INACTIVE;
 
-    constructor(address _signer, address _withdrawer) ERC721A("Pogs", "POG") {
+    constructor(
+        address _signer,
+        address _withdrawer,
+        address _royalties
+    ) ERC721A("Pogs", "POG") {
         require(_signer != address(0x00), "Cannot be zero address");
         require(_withdrawer != address(0x00), "Cannot be zero address");
+        require(_royalties != address(0x00), "Cannot be zero address");
         allowListSigner = _signer;
         withdrawAddress = _withdrawer;
+        royaltyAddress = _royalties;
         //initialize tickets
-        _addTickets(maxSupply);
+        _addTickets(STARTING_TICKETS);
     }
 
     function mint(uint256 amount) external payable {
         require(msg.sender == tx.origin, "EOA Only");
         require(activeSession == ActiveSession.PUBLIC, "Minting Not Active");
         require(msg.value >= mintPrice * amount, "Did not send enough ether");
-        require(totalSupply() + amount <= maxSupply, "Max amount reached");
+        require(totalSupply() + amount <= MAX_SUPPLY, "Max amount reached");
 
         //mint
         _mint(_msgSender(), amount);
@@ -58,10 +66,9 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         uint256[] calldata ticketNumbers,
         bytes[] calldata signatures
     ) external payable {
-        require(msg.sender == tx.origin, "EOA Only");
         require(ticketNumbers.length == signatures.length, "Mismatch Arrays");
         require(
-            totalSupply() + ticketNumbers.length <= maxSupply,
+            totalSupply() + ticketNumbers.length <= MAX_SUPPLY,
             "Max amount reached"
         );
         require(ticketNumbers.length < 3, "Max 2 Tickets");
@@ -72,19 +79,33 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
 
         for (uint256 i; i < ticketNumbers.length; i++) {
             require(
-                verifyTicket(
-                    msg.sender, // ensures only verified user can mint
+                _verifyTicket(
+                    _msgSender(), // ensures only verified user can mint
                     ticketNumbers[i], // ensures a ticket cant be used twice
                     uint8(activeSession), // ensures ticket can only be used for current session
                     signatures[i]
                 ),
-                "ticket not valid"
+                "Can not verify ticket"
             );
             _claimTicket(ticketNumbers[i]); // account for used ticket
         }
 
         //mint
         _mint(_msgSender(), ticketNumbers.length);
+    }
+
+    function _verifyTicket(
+        address user,
+        uint256 ticketNumber,
+        uint8 session,
+        bytes memory signature
+    ) private view returns (bool isValid) {
+        if (
+            allowListSigner ==
+            getTicket(user, ticketNumber, session)
+                .toEthSignedMessageHash()
+                .recover(signature)
+        ) isValid = true;
     }
 
     function verifyTicket(
@@ -98,7 +119,44 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
             getTicket(user, ticketNumber, session)
                 .toEthSignedMessageHash()
                 .recover(signature)
-        ) isValid = true;
+        ) {
+            //get ticket bin and ticket bit
+            uint256 ticketBin;
+            uint256 ticket;
+            unchecked {
+                ticketBin = ticketNumber / TICKETS_PER_BIN;
+                ticket = ticketNumber % TICKETS_PER_BIN;
+            }
+
+            uint256 ticketBit = (ticketMap[ticketBin] >> ticket) & uint256(1);
+            if (ticketBit == 1) isValid = true;
+        } else isValid = false;
+    }
+
+    function _claimTicket(uint256 ticketNumber) private {
+        require(ticketNumber <= totalTickets, "Invalid Ticket Number");
+        //get ticket bin and ticket bit
+        uint256 ticketBin;
+        uint256 ticket;
+        unchecked {
+            ticketBin = ticketNumber / TICKETS_PER_BIN;
+            ticket = ticketNumber % TICKETS_PER_BIN;
+        }
+
+        uint256 ticketBit = (ticketMap[ticketBin] >> ticket) & uint256(1);
+        require(ticketBit == 1, "ticket already claimed");
+
+        ticketMap[ticketBin] = ticketMap[ticketBin] & ~(uint256(1) << ticket);
+    }
+
+    // This can be used to create the unsigned tickets
+    function getTicket(
+        address user,
+        uint256 ticketNumber,
+        uint8 session
+    ) public pure returns (bytes32) {
+        bytes32 hash = keccak256(abi.encodePacked(user, ticketNumber, session));
+        return hash;
     }
 
     function addTickets(uint256 amount) external onlyOwner {
@@ -123,32 +181,6 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         }
     }
 
-    // This can be used to create the unsigned tickets
-    function getTicket(
-        address user,
-        uint256 ticketNumber,
-        uint8 session
-    ) public pure returns (bytes32) {
-        bytes32 hash = keccak256(abi.encodePacked(user, ticketNumber, session));
-        return hash;
-    }
-
-    function _claimTicket(uint256 ticketNumber) private {
-        require(ticketNumber < TICKET_MAX, "Invalid Ticket Number");
-        //get bin and bit
-        uint256 bin;
-        uint256 bit;
-        unchecked {
-            bin = ticketNumber / TICKETS_PER_BIN;
-            bit = ticketNumber % TICKETS_PER_BIN;
-        }
-
-        uint256 storedBit = (ticketMap[bin] >> bit) & uint256(1);
-        require(storedBit == 1, "ticket already claimed");
-
-        ticketMap[bin] = ticketMap[bin] & ~(uint256(1) << bit);
-    }
-
     function tokensOfOwner(
         address _owner
     ) external view returns (uint256[] memory) {
@@ -159,6 +191,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         uint256 tokenId
     ) public view override(ERC721A, IERC721A) returns (string memory) {
         require(_exists(tokenId), "Token does not exist");
+        if (!isRevealed) return unrevealedURI;
         return string(abi.encodePacked(baseURI, Strings.toString(tokenId)));
     }
 
@@ -194,12 +227,20 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         baseURI = uri;
     }
 
+    function setUnrevealedURI(string calldata uri) external onlyOwner {
+        unrevealedURI = uri;
+    }
+
+    function setIsRevealed(bool _isRevealed) external onlyOwner {
+        isRevealed = _isRevealed;
+    }
+
     function setMintPrice(uint256 price) external onlyOwner {
         mintPrice = price;
     }
 
     function mintForTeam(address receiver, uint16 amount) external onlyOwner {
-        require(totalSupply() + amount <= maxSupply, "Max amount reached");
+        require(totalSupply() + amount <= MAX_SUPPLY, "Max amount reached");
         _safeMint(receiver, amount);
     }
 
@@ -229,7 +270,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         withdrawAddress = addr;
     }
 
-    function getBalance() external view returns (uint256) {
+    function getWithdrawBalance() external view returns (uint256) {
         // To access the amount of ether the contract has
         return address(this).balance;
     }
@@ -244,6 +285,8 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     function burn(uint256 tokenId) external onlyAdmin {
         _burn(tokenId);
     }
+
+    receive() external payable {}
 
     fallback() external payable {}
 }
