@@ -90,8 +90,10 @@ contract PogsTest is Test {
     }
 
     function testHashing() public {
+        // address user = 0x1d07A15DafdD46247C4Aea1C77d1F2c08F4544A2;
+
         //signature that will be provided by back end for user 1
-        uint256 ticketNumber = 85;
+        uint256 ticketNumber = 2;
         bytes32 hash = keccak256(
             abi.encodePacked(
                 "\x19Ethereum Signed Message:\n32",

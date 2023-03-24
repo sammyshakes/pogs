@@ -53,10 +53,10 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     }
 
     function mint(uint256 amount) external payable {
-        require(activeSession == ActiveSession.PUBLIC, "Minting Not Active");
         require(msg.sender == tx.origin, "EOA Only");
-        require(totalSupply() + amount <= MAX_SUPPLY, "Max amount reached");
+        require(activeSession == ActiveSession.PUBLIC, "Minting Not Active");
         require(msg.value >= mintPrice * amount, "Did not send enough ether");
+        require(totalSupply() + amount <= MAX_SUPPLY, "Max amount reached");
 
         //mint
         _mint(_msgSender(), amount);
@@ -66,35 +66,28 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         uint256[] calldata ticketNumbers,
         bytes[] calldata signatures
     ) external payable {
-        require(ticketNumbers.length < 3, "Max 2 Tickets");
         require(ticketNumbers.length == signatures.length, "Mismatch Arrays");
         require(
             totalSupply() + ticketNumbers.length <= MAX_SUPPLY,
             "Max amount reached"
         );
+        require(ticketNumbers.length < 3, "Max 2 Tickets");
         require(
             msg.value >= mintPrice * ticketNumbers.length,
             "Did not send enough ether"
         );
 
         for (uint256 i; i < ticketNumbers.length; i++) {
-            //get ticket bin and ticket bit
-            (uint256 ticketBin, uint256 ticketBit) = _getTicketBinAndBit(
-                ticketNumbers[i]
-            );
-
             require(
-                _verifyTicket(
+                verifyTicket(
                     _msgSender(), // ensures only verified user can mint
                     ticketNumbers[i], // ensures a ticket cant be used twice
-                    ticketBin,
-                    ticketBit,
                     uint8(activeSession), // ensures ticket can only be used for current session
                     signatures[i]
                 ),
                 "Can not verify ticket"
             );
-            _claimTicket(ticketNumbers[i], ticketBin, ticketBit); // account for used ticket
+            _claimTicket(ticketNumbers[i]); // account for used ticket
         }
 
         //mint
@@ -106,77 +99,32 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         uint256 ticketNumber,
         uint8 session,
         bytes memory signature
-    ) public view returns (bool) {
-        if (ticketNumber > totalTickets) return false;
-
-        //get ticket bin and ticket bit
-        (uint256 ticketBin, uint256 ticketBit) = _getTicketBinAndBit(
-            ticketNumber
-        );
-
-        return
-            _verifyTicket(
-                user, // ensures only verified user can mint
-                ticketNumber, // ensures a ticket cant be used twice
-                ticketBin,
-                ticketBit,
-                session, // ensures ticket can only be used for current session
-                signature
-            );
-    }
-
-    function _verifyTicket(
-        address user,
-        uint256 ticketNumber,
-        uint256 ticketBin,
-        uint256 ticketBit,
-        uint8 session,
-        bytes memory signature
     ) public view returns (bool isValid) {
-        //check for valid signature
         if (
             allowListSigner ==
             getTicket(user, ticketNumber, session)
                 .toEthSignedMessageHash()
                 .recover(signature)
-        ) {
-            //ensure ticket hasnt been used yet
-            isValid = !_isTicketClaimed(ticketBin, ticketBit);
-        }
+        ) isValid = true;
     }
 
-    function _getTicketBinAndBit(
-        uint256 _ticketNumber
-    ) private pure returns (uint256 _bin, uint256 _bit) {
-        //No chance of overflow
-        unchecked {
-            _bin = _ticketNumber / TICKETS_PER_BIN;
-            _bit = _ticketNumber % TICKETS_PER_BIN;
-        }
-    }
-
-    function _isTicketClaimed(
-        uint256 _bin,
-        uint256 _bit
-    ) private view returns (bool isClaimed) {
-        //ensure ticket hasnt been used yet
-        uint256 verifyBit = (ticketMap[_bin] >> _bit) & uint256(1);
-        if (verifyBit == 0) return true;
-    }
-
-    function _claimTicket(
-        uint256 ticketNumber,
-        uint256 ticketBin,
-        uint256 ticketBit
-    ) private {
+    function _claimTicket(uint256 ticketNumber) private {
         require(ticketNumber <= totalTickets, "Invalid Ticket Number");
+        //get ticket bin and ticket bit
+        uint256 ticketBin;
+        uint256 ticket;
+        unchecked {
+            ticketBin = ticketNumber / TICKETS_PER_BIN;
+            ticket = ticketNumber % TICKETS_PER_BIN;
+        }
 
-        ticketMap[ticketBin] =
-            ticketMap[ticketBin] &
-            ~(uint256(1) << ticketBit);
+        uint256 ticketBit = (ticketMap[ticketBin] >> ticket) & uint256(1);
+        require(ticketBit == 1, "ticket already claimed");
+
+        ticketMap[ticketBin] = ticketMap[ticketBin] & ~(uint256(1) << ticket);
     }
 
-    //create an unsigned ticket
+    // This can be used to create the unsigned tickets
     function getTicket(
         address user,
         uint256 ticketNumber,
@@ -304,7 +252,6 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
 
     //  ADMIN ONLY //
     mapping(address => bool) private _admins;
-
     modifier onlyAdmin() {
         require(!_admins[msg.sender], "Only Admins");
         _;
