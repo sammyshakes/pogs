@@ -83,17 +83,16 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
                 ticketNumbers[i]
             );
 
-            require(
-                _verifyTicket(
-                    _msgSender(), // ensures only verified user can mint
-                    ticketNumbers[i], // ensures a ticket cant be used twice
-                    ticketBin,
-                    ticketBit,
-                    uint8(activeSession), // ensures ticket can only be used for current session
-                    signatures[i]
-                ),
-                "Can not verify ticket"
+            (bool _isValid, string memory reason) = _verifyTicket(
+                _msgSender(), // ensures only verified user can mint
+                ticketNumbers[i], // ensures a ticket cant be used twice
+                ticketBin,
+                ticketBit,
+                uint8(activeSession), // ensures ticket can only be used for current session
+                signatures[i]
             );
+
+            require(_isValid, reason);
             _claimTicket(ticketNumbers[i], ticketBin, ticketBit); // account for used ticket
         }
 
@@ -106,23 +105,20 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         uint256 ticketNumber,
         uint8 session,
         bytes memory signature
-    ) public view returns (bool) {
-        if (ticketNumber > totalTickets) return false;
-
+    ) public view returns (bool _isValid) {
         //get ticket bin and ticket bit
         (uint256 ticketBin, uint256 ticketBit) = _getTicketBinAndBit(
             ticketNumber
         );
 
-        return
-            _verifyTicket(
-                user, // ensures only verified user can mint
-                ticketNumber, // ensures a ticket cant be used twice
-                ticketBin,
-                ticketBit,
-                session, // ensures ticket can only be used for current session
-                signature
-            );
+        (_isValid, ) = _verifyTicket(
+            user, // ensures only verified user can mint
+            ticketNumber, // ensures a ticket cant be used twice
+            ticketBin,
+            ticketBit,
+            session, // ensures ticket can only be used for current session
+            signature
+        );
     }
 
     function _verifyTicket(
@@ -132,7 +128,9 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         uint256 ticketBit,
         uint8 session,
         bytes memory signature
-    ) public view returns (bool isValid) {
+    ) public view returns (bool isValid, string memory reason) {
+        if (ticketNumber > totalTickets)
+            return (false, "Invalid Ticket Number");
         //check for valid signature
         if (
             allowListSigner ==
@@ -142,7 +140,8 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         ) {
             //ensure ticket hasnt been used yet
             isValid = !_isTicketClaimed(ticketBin, ticketBit);
-        }
+            if (!isValid) reason = "Claimed Ticket";
+        } else reason = "Invalid Ticket";
     }
 
     function _getTicketBinAndBit(

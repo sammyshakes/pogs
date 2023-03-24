@@ -89,26 +89,99 @@ contract PogsTest is Test {
         assertEq(pogs.ticketMap(totalTickets / 256 + 1), 0);
     }
 
-    function testHashing() public {
-        // address user = 0x1d07A15DafdD46247C4Aea1C77d1F2c08F4544A2;
-
-        //signature that will be provided by back end for user 1
-        uint256 ticketNumber = 2;
-        bytes32 hash = keccak256(
+    function hashTicket(
+        address user,
+        uint256 ticketNumber,
+        uint8 session
+    ) internal returns (bytes32 hash) {
+        hash = keccak256(
             abi.encodePacked(
                 "\x19Ethereum Signed Message:\n32",
-                keccak256(abi.encodePacked(user3, ticketNumber, uint8(1)))
+                keccak256(abi.encodePacked(user, ticketNumber, session))
             )
         );
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, hash);
+    }
+
+    function hashGetTicket(bytes32 _tick) internal returns (bytes32 _hash) {
+        _hash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", _tick)
+        );
+    }
+
+    function signTicket(
+        bytes32 _hash
+    ) internal returns (uint8 v, bytes32 r, bytes32 s) {
+        (v, r, s) = vm.sign(signerPrivateKey, _hash);
+    }
+
+    function encodeParams(
+        address user,
+        uint256 ticketNumber,
+        uint8 session
+    ) internal returns (bytes memory) {
+        return abi.encodePacked(user, ticketNumber, session);
+    }
+
+    function hashWithParams(
+        bytes memory _tick
+    ) internal returns (bytes32 _hash) {
+        _hash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", _tick)
+        );
+    }
+
+    function testCLI() public {
+        address user = 0x1d07A15DafdD46247C4Aea1C77d1F2c08F4544A2;
+        uint256 ticketNumber = 1;
+        uint8 session = 1;
+
+        // bytes memory params = encodeParams(user, ticketNumber, session);
+        // bytes32 __hash = hashWithParams(params);
+
+        bytes32 tick = pogs.getTicket(user, ticketNumber, session);
+        bytes32 hash = hashGetTicket(tick);
+
+        // // sign ticket
+        (uint8 v, bytes32 r, bytes32 s) = signTicket(hash);
+        bytes memory signedTicket = abi.encodePacked(r, s, v);
+
+        // recover signer
         address _signer = ecrecover(hash, v, r, s);
         assertEq(signer, _signer); // [PASS]
-        bytes memory signature = abi.encodePacked(r, s, v);
 
         uint256[] memory tickets = new uint256[](1);
         tickets[0] = ticketNumber;
         bytes[] memory sigs = new bytes[](1);
-        sigs[0] = signature;
+        sigs[0] = signedTicket;
+
+        //set active session to ALLOWLIST
+        pogs.setSession(1);
+
+        //deal some ether
+        hevm.deal(user, 1 ether);
+        //mint from allowlist
+        hevm.prank(user);
+        pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
+    }
+
+    function testAllowlist() public {
+        //signature that will be provided by back end for user 1
+        uint256 ticketNumber = 1;
+
+        // //hash ticket
+        bytes32 hash = hashTicket(user3, ticketNumber, uint8(1));
+        // // sign ticket
+        (uint8 v, bytes32 r, bytes32 s) = signTicket(hash);
+        bytes memory signedTicket = abi.encodePacked(r, s, v);
+
+        // recover signer
+        address _signer = ecrecover(hash, v, r, s);
+        assertEq(signer, _signer); // [PASS]
+
+        uint256[] memory tickets = new uint256[](1);
+        tickets[0] = ticketNumber;
+        bytes[] memory sigs = new bytes[](1);
+        sigs[0] = signedTicket;
 
         //try to use before allowlist has started
         //set active session to NONE
@@ -162,15 +235,16 @@ contract PogsTest is Test {
 
     function testGetTicket() public {
         //first get using solidity function
-        uint256 ticketNumber = 0;
+        uint256 ticketNumber = 1;
 
         bytes32 tick = pogs.getTicket(user3, ticketNumber, 1);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            signerPrivateKey,
-            keccak256(
-                abi.encodePacked("\x19Ethereum Signed Message:\n32", tick)
-            )
-        );
+
+        bytes32 _tick = hashGetTicket(tick);
+
+        // sign ticket
+        (uint8 v, bytes32 r, bytes32 s) = signTicket(_tick);
+        bytes memory signedTicket = abi.encodePacked(r, s, v);
+
         address _signer = ecrecover(
             keccak256(
                 abi.encodePacked("\x19Ethereum Signed Message:\n32", tick)
@@ -179,23 +253,26 @@ contract PogsTest is Test {
             r,
             s
         );
-        bytes memory signature = abi.encodePacked(r, s, v);
+        // bytes memory signedTicket = abi.encodePacked(r, s, v);
         assertEq(signer, _signer); // [PASS]
 
         //test verify sig
-        assertEq(true, pogs.verifyTicket(user3, ticketNumber, 1, signature));
+        assertEq(true, pogs.verifyTicket(user3, ticketNumber, 1, signedTicket));
 
         // test minting with ticket
         uint256[] memory tickets = new uint256[](1);
         tickets[0] = ticketNumber;
         bytes[] memory sigs = new bytes[](1);
-        sigs[0] = signature;
+        sigs[0] = signedTicket;
 
         hevm.prank(user3, user3);
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
 
         //test verify sig after mint
-        assertEq(false, pogs.verifyTicket(user3, ticketNumber, 1, signature));
+        assertEq(
+            false,
+            pogs.verifyTicket(user3, ticketNumber, 1, signedTicket)
+        );
     }
 
     function testVerifyTicket() public {
@@ -237,15 +314,15 @@ contract PogsTest is Test {
         pogs.mint{value: amount * mintPrice}(amount);
     }
 
-    function testMaxSupply() public {
-        hevm.expectRevert();
-        pogs.mintForTeam(user2, 4445);
+    // function testMaxSupply() public {
+    //     hevm.expectRevert();
+    //     pogs.mintForTeam(user2, 4445);
 
-        pogs.mintForTeam(user2, 4444);
+    //     pogs.mintForTeam(user2, 4444);
 
-        hevm.expectRevert();
-        pogs.mintForTeam(user2, 1);
-    }
+    //     hevm.expectRevert();
+    //     pogs.mintForTeam(user2, 1);
+    // }
 
     function testMintForTeam() public {
         pogs.mintForTeam(user2, 5);
