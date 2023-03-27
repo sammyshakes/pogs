@@ -282,7 +282,6 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     }
 
     function withdraw() external {
-        require(withdrawAddress != address(0x00), "Withdraw address not set");
         require(_msgSender() == withdrawAddress, "Withdraw address only");
         uint256 totalAmount = address(this).balance;
         bool sent;
