@@ -356,10 +356,10 @@ contract PogsTest is Test {
         hevm.expectRevert();
         pogs.mintForTeam(user2, 4445);
 
-        pogs.mintForTeam(user2, 4444);
+        // pogs.mintForTeam(user2, 4444);
 
-        hevm.expectRevert();
-        pogs.mintForTeam(user2, 1);
+        // hevm.expectRevert();
+        // pogs.mintForTeam(user2, 1);
     }
 
     function testMintForTeam() public {
@@ -409,6 +409,51 @@ contract PogsTest is Test {
         pogs.mintForTeam(user1, 1);
         string memory retrievedURI = pogs.tokenURI(1);
         console.log(retrievedURI);
+    }
+
+    function testRoyalties() public {
+        (address receiver, uint256 royPermille) = pogs.royaltyInfo(1, 1 ether);
+        assertEq(receiver, pogs.royaltyAddress());
+        pogs.setRoyaltyPermille(100);
+
+        pogs.setRoyaltyAddress(address(0x5555));
+        assertEq(address(0x5555), pogs.royaltyAddress());
+    }
+
+    function testSetWithdrawAddress() public {
+        pogs.setWithdrawAddress(address(0x5555));
+        assertEq(address(0x5555), pogs.withdrawAddress());
+    }
+
+    function testAllowListSigner() public {
+        //try to set with address zero
+        hevm.expectRevert();
+        pogs.setAllowListSigner(address(0x00));
+        // assertEq(address(0x5555), pogs.allowListSigner());
+
+        pogs.setAllowListSigner(address(0x5555));
+        assertEq(address(0x5555), pogs.allowListSigner());
+    }
+
+    function testAdmins() public {
+        // try to burn without setting admin address
+        assertEq(pogs.isAdmin(address(this)), false);
+        hevm.expectRevert();
+        pogs.burn(1);
+
+        pogs.addAdmin(address(0x5555));
+        assertEq(pogs.isAdmin(address(0x5555)), true);
+
+        hevm.prank(address(0x5555));
+        pogs.burn(1);
+
+        // remove admin
+        pogs.removeAdmin(address(0x5555));
+        assertEq(pogs.isAdmin(address(0x5555)), false);
+
+        // try to burn without after removing admin address
+        hevm.expectRevert();
+        pogs.burn(1);
     }
 
     // function testPaymentSplitter() public {

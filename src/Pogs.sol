@@ -304,12 +304,25 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     mapping(address => bool) private _admins;
 
     modifier onlyAdmin() {
-        require(!_admins[msg.sender], "Only Admins");
+        require(_admins[msg.sender], "Only Admins");
         _;
     }
 
     function burn(uint256 tokenId) external onlyAdmin {
         _burn(tokenId);
+    }
+
+    function addAdmin(address addr) external onlyOwner {
+        require(addr != address(0x00), "Cannot be zero address");
+        _admins[addr] = true;
+    }
+
+    function removeAdmin(address addr) external onlyOwner {
+        delete _admins[addr];
+    }
+
+    function isAdmin(address addr) external view returns (bool) {
+        return _admins[addr];
     }
 
     receive() external payable {}
