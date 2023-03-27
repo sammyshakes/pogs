@@ -93,7 +93,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
             );
 
             require(_isValid, reason);
-            _claimTicket(ticketNumbers[i], ticketBin, ticketBit); // account for used ticket
+            _claimTicket(ticketBin, ticketBit); // account for used ticket
         }
 
         //mint
@@ -163,13 +163,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         if (verifyBit == 0) return true;
     }
 
-    function _claimTicket(
-        uint256 ticketNumber,
-        uint256 ticketBin,
-        uint256 ticketBit
-    ) private {
-        require(ticketNumber <= totalTickets, "Invalid Ticket Number");
-
+    function _claimTicket(uint256 ticketBin, uint256 ticketBit) private {
         ticketMap[ticketBin] =
             ticketMap[ticketBin] &
             ~(uint256(1) << ticketBit);
@@ -246,6 +240,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     }
 
     function setRoyaltyAddress(address addr) external onlyOwner {
+        require(addr != address(0x00), "Cannot be zero address");
         royaltyAddress = addr;
     }
 

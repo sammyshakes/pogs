@@ -105,6 +105,10 @@ contract PogsTest is Test {
         pogs.mintWithTicket{value: .01 ether}(tickets, sigs);
     }
 
+    function testAddTickets() public {
+        pogs.addTickets(1000);
+    }
+
     function testInitialMap() public {
         assertEq(pogs.name(), "Pogs");
         assertEq(testMax, type(uint256).max);
@@ -162,7 +166,7 @@ contract PogsTest is Test {
 
     function testCLI() public {
         address user = 0x1d07A15DafdD46247C4Aea1C77d1F2c08F4544A2;
-        uint256 ticketNumber = 2;
+        uint256 ticketNumber = 1;
         uint8 session = 1;
 
         // bytes memory params = encodeParams(user, ticketNumber, session);
@@ -269,6 +273,64 @@ contract PogsTest is Test {
         assertEq(withdrawAddress.balance, pogs.mintPrice());
         ctxBal = pogs.getWithdrawBalance();
         console.log("bal contract Address after = ", ctxBal);
+
+        // try to mint with three tickets
+        tickets = new uint256[](3);
+        tickets[0] = 1;
+        tickets[1] = 2;
+        tickets[2] = 3;
+        sigs = new bytes[](3);
+        sigs[0] = testTicket;
+        for (uint i = 1; i < 3; i++) {
+            bytes32 tick = pogs.getTicket(user2, i, 1);
+            bytes32 _hash = hashGetTicket(tick);
+            // sign ticket
+            (uint8 v, bytes32 r, bytes32 s) = signTicket(_hash);
+            sigs[i] = abi.encodePacked(r, s, v);
+        }
+        hevm.expectRevert();
+        hevm.prank(user2);
+        pogs.mintWithTicket{value: .03 ether}(tickets, sigs);
+
+        // try to mint with mismatched arrays
+        tickets = new uint256[](2);
+        tickets[0] = 1;
+        tickets[1] = 2;
+        sigs = new bytes[](3);
+        sigs[0] = testTicket;
+        for (uint i = 1; i < 3; i++) {
+            bytes32 tick = pogs.getTicket(user2, i, 1);
+            bytes32 _hash = hashGetTicket(tick);
+            // sign ticket
+            (uint8 v, bytes32 r, bytes32 s) = signTicket(_hash);
+            sigs[i] = abi.encodePacked(r, s, v);
+        }
+        hevm.expectRevert();
+        hevm.prank(user2);
+        pogs.mintWithTicket{value: .02 ether}(tickets, sigs);
+
+        tickets = new uint256[](2);
+        tickets[0] = 4;
+        tickets[1] = 5;
+        sigs = new bytes[](2);
+        sigs[0] = testTicket;
+        for (uint i; i < 2; i++) {
+            bytes32 tick = pogs.getTicket(user2, tickets[i], 1);
+            bytes32 _hash = hashGetTicket(tick);
+            // sign ticket
+            (uint8 v, bytes32 r, bytes32 s) = signTicket(_hash);
+            sigs[i] = abi.encodePacked(r, s, v);
+        }
+        //try to mint without sending enough ether
+        hevm.expectRevert();
+        hevm.prank(user2);
+        pogs.mintWithTicket{value: 0}(tickets, sigs);
+
+        //try to mint more than max supply
+        pogs.mintForTeam(user3, 3778);
+        hevm.expectRevert();
+        hevm.prank(user2);
+        pogs.mintWithTicket{value: .02 ether}(tickets, sigs);
     }
 
     function testGetTicket() public {
@@ -341,25 +403,52 @@ contract PogsTest is Test {
             true,
             pogs.verifyTicket(user3, ticketNumber, session, signature)
         );
+
+        //try with invalid ticketnumber
+        assertTrue(!pogs.verifyTicket(user3, 15_000, session, signature));
     }
 
     function testPublicMint() public {
-        //set active session to public mint
         uint256 amount = 1;
         uint256 mintPrice = pogs.mintPrice();
+
+        //try to mint before setting active session
+        hevm.expectRevert();
+        hevm.prank(user1, user1);
+        pogs.mint{value: amount * mintPrice}(amount);
+
+        //try to mint from contract
+        pogs.setSession(3);
+        hevm.expectRevert();
+        //this is equivalent to sending from contract
+        hevm.prank(user1);
+        pogs.mint{value: amount * mintPrice}(amount);
+
+        //set active session to public mint
         pogs.setSession(3);
         hevm.prank(user1, user1);
         pogs.mint{value: amount * mintPrice}(amount);
+
+        //try to mint without sending enough value
+        hevm.expectRevert();
+        hevm.prank(user1, user1);
+        pogs.mint{value: 1 * mintPrice}(2);
+
+        //try to mint more than max supply
+        pogs.mintForTeam(user3, 3775);
+        hevm.expectRevert();
+        hevm.prank(user1, user1);
+        pogs.mint{value: 10 * mintPrice}(10);
     }
 
     function testMaxSupply() public {
         hevm.expectRevert();
         pogs.mintForTeam(user2, 4445);
 
-        // pogs.mintForTeam(user2, 4444);
+        pogs.mintForTeam(user2, 4444);
 
-        // hevm.expectRevert();
-        // pogs.mintForTeam(user2, 1);
+        hevm.expectRevert();
+        pogs.mintForTeam(user2, 1);
     }
 
     function testMintForTeam() public {
@@ -370,6 +459,10 @@ contract PogsTest is Test {
 
         // also check totalSupply()
         assertEq(pogs.totalSupply(), currentSupply + amount);
+
+        //try to exceed maxsupply
+        hevm.expectRevert();
+        pogs.mintForTeam(user2, 5000);
     }
 
     function testSetMintPrice() public {
@@ -391,28 +484,44 @@ contract PogsTest is Test {
         pogs.mintForTeam(user1, 1);
         string memory retrievedURI = pogs.tokenURI(1);
         console.log(retrievedURI);
+
+        //retrieve uri for token that does not exist
+        hevm.expectRevert();
+        pogs.tokenURI(4444);
     }
 
-    // setUnrevealedURI
     function testUnrevealed() public {
+        // set unrevealed uri
+        string memory setUnrevealedUrl = "https://unrevealed.com";
+        pogs.setUnrevealedURI(setUnrevealedUrl);
+
+        // set base uri
+        string
+            memory baseUrl = "ipfs://bafybeibewadqajwgmka7357h7k7v2fw4jgekmv5di3vryr6lyfanzv3ioq/";
+        pogs.setBaseURI(baseUrl);
+
+        //get uri before revealed
+        string memory retrievedURI = pogs.tokenURI(1);
+        console.log("retrieved url for token 1 before reveal", retrievedURI);
+
         bool isRevealed = pogs.isRevealed();
         assertEq(isRevealed, false);
         pogs.setIsRevealed(true);
         isRevealed = pogs.isRevealed();
         assertEq(isRevealed, true);
 
-        // set unrevealed uri
-        string memory setUnrevealedUrl = "https://unrevealed.com";
-        pogs.setUnrevealedURI(setUnrevealedUrl);
-
         // hevm.prank(user1);
         pogs.mintForTeam(user1, 1);
-        string memory retrievedURI = pogs.tokenURI(1);
+        retrievedURI = pogs.tokenURI(1);
         console.log(retrievedURI);
     }
 
     function testRoyalties() public {
-        (address receiver, uint256 royPermille) = pogs.royaltyInfo(1, 1 ether);
+        //try to set with zero address
+        hevm.expectRevert();
+        pogs.setRoyaltyAddress(address(0x00));
+
+        (address receiver, ) = pogs.royaltyInfo(1, 1 ether);
         assertEq(receiver, pogs.royaltyAddress());
         pogs.setRoyaltyPermille(100);
 
@@ -421,6 +530,10 @@ contract PogsTest is Test {
     }
 
     function testSetWithdrawAddress() public {
+        //try to set with zero address
+        hevm.expectRevert();
+        pogs.setWithdrawAddress(address(0x00));
+
         pogs.setWithdrawAddress(address(0x5555));
         assertEq(address(0x5555), pogs.withdrawAddress());
     }
@@ -441,6 +554,10 @@ contract PogsTest is Test {
         hevm.expectRevert();
         pogs.burn(1);
 
+        //try to set with zero address
+        hevm.expectRevert();
+        pogs.addAdmin(address(0x00));
+
         pogs.addAdmin(address(0x5555));
         assertEq(pogs.isAdmin(address(0x5555)), true);
 
@@ -454,6 +571,10 @@ contract PogsTest is Test {
         // try to burn without after removing admin address
         hevm.expectRevert();
         pogs.burn(1);
+    }
+
+    function testInterface() public {
+        assertTrue(pogs.supportsInterface(type(IERC2981).interfaceId));
     }
 
     // function testPaymentSplitter() public {
