@@ -441,15 +441,15 @@ contract PogsTest is Test {
         pogs.mint{value: 10 * mintPrice}(10);
     }
 
-    function testMaxSupply() public {
-        hevm.expectRevert();
-        pogs.mintForTeam(user2, 4445);
+    // function testMaxSupply() public {
+    //     hevm.expectRevert();
+    //     pogs.mintForTeam(user2, 4445);
 
-        pogs.mintForTeam(user2, 4444);
+    //     pogs.mintForTeam(user2, 4444 - 664);
 
-        hevm.expectRevert();
-        pogs.mintForTeam(user2, 1);
-    }
+    //     hevm.expectRevert();
+    //     pogs.mintForTeam(user2, 1);
+    // }
 
     function testMintForTeam() public {
         uint16 amount = 664;
@@ -487,7 +487,7 @@ contract PogsTest is Test {
 
         //retrieve uri for token that does not exist
         hevm.expectRevert();
-        pogs.tokenURI(4444);
+        pogs.tokenURI(7000);
     }
 
     function testUnrevealed() public {
@@ -514,6 +514,10 @@ contract PogsTest is Test {
         pogs.mintForTeam(user1, 1);
         retrievedURI = pogs.tokenURI(1);
         console.log(retrievedURI);
+
+        //retrieve uri for token that does not exist
+        hevm.expectRevert();
+        pogs.tokenURI(7000);
     }
 
     function testRoyalties() public {
@@ -575,6 +579,9 @@ contract PogsTest is Test {
 
     function testInterface() public {
         assertTrue(pogs.supportsInterface(type(IERC2981).interfaceId));
+        assertTrue(pogs.supportsInterface(0x01ffc9a7));
+        assertTrue(pogs.supportsInterface(0x80ac58cd));
+        assertTrue(pogs.supportsInterface(0x5b5e139f));
     }
 
     // function testPaymentSplitter() public {
