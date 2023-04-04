@@ -441,15 +441,15 @@ contract PogsTest is Test {
         pogs.mint{value: 10 * mintPrice}(10);
     }
 
-    // function testMaxSupply() public {
-    //     hevm.expectRevert();
-    //     pogs.mintForTeam(user2, 4445);
+    function testMaxSupply() public {
+        hevm.expectRevert();
+        pogs.mintForTeam(user2, 4445);
 
-    //     pogs.mintForTeam(user2, 4444 - 664);
+        pogs.mintForTeam(user2, 4444 - 664);
 
-    //     hevm.expectRevert();
-    //     pogs.mintForTeam(user2, 1);
-    // }
+        hevm.expectRevert();
+        pogs.mintForTeam(user2, 1);
+    }
 
     function testMintForTeam() public {
         uint16 amount = 664;

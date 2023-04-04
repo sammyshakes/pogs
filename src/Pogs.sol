@@ -55,7 +55,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     function mint(uint256 amount) external payable {
         require(activeSession == ActiveSession.PUBLIC, "Minting Not Active");
         require(msg.sender == tx.origin, "EOA Only");
-        require(totalSupply() + amount <= MAX_SUPPLY, "Max amount reached");
+        require(_totalMinted() + amount <= MAX_SUPPLY, "Max amount reached");
         require(msg.value >= mintPrice * amount, "Did not send enough ether");
 
         //mint
@@ -69,7 +69,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         require(ticketNumbers.length < 3, "Max 2 Tickets");
         require(ticketNumbers.length == signatures.length, "Mismatch Arrays");
         require(
-            totalSupply() + ticketNumbers.length <= MAX_SUPPLY,
+            _totalMinted() + ticketNumbers.length <= MAX_SUPPLY,
             "Max amount reached"
         );
         require(
@@ -228,7 +228,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721A, IERC721A, ERC2981) returns (bool) {
+    ) public pure override(ERC721A, IERC721A, ERC2981) returns (bool) {
         return
             interfaceId == type(IERC2981).interfaceId ||
             interfaceId == 0x01ffc9a7 || // ERC165 interface ID for ERC165.
@@ -263,7 +263,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     }
 
     function mintForTeam(address receiver, uint16 amount) external onlyOwner {
-        require(totalSupply() + amount <= MAX_SUPPLY, "Max amount reached");
+        require(_totalMinted() + amount <= MAX_SUPPLY, "Max amount reached");
         _safeMint(receiver, amount);
     }
 
