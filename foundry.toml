@@ -5,6 +5,7 @@ src = 'src'
 
 [rpc_endpoints]
 goerli = "${GOERLI_RPC_URL}"
+mainnet = "${RPC_URL}"
 
 [etherscan]
 goerli = {key = "${ETHERSCAN_API_KEY}"}

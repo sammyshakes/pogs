@@ -19,8 +19,8 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     // CONSTANTS
     uint256 constant MAX_SUPPLY = 4_444;
     uint256 constant TICKETS_PER_BIN = 256;
-    uint256 constant TICKET_BINS = 50; // Starting Amount of Bins: STARTING_TICKETS / 256 + 1
-    uint256 constant STARTING_TICKETS = 12_800; // TICKET_BINS * TICKETS_PER_BIN
+    uint256 constant TICKET_BINS = 100; // Starting Amount of Bins: STARTING_TICKETS / 256 + 1
+    uint256 constant STARTING_TICKETS = 25_600; // TICKET_BINS * TICKETS_PER_BIN
 
     // PRIVATE VARS
     string private baseURI;
@@ -32,7 +32,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     address public allowListSigner;
     address public withdrawAddress;
     address public royaltyAddress;
-    uint256 public mintPrice = 0.01 ether;
+    uint256 public mintPrice = 0.049 ether;
     uint256 public totalTickets;
     mapping(uint256 => uint256) public ticketMap;
     ActiveSession public activeSession = ActiveSession.INACTIVE;
@@ -128,7 +128,7 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
         uint256 ticketBit,
         uint8 session,
         bytes memory signature
-    ) public view returns (bool isValid, string memory reason) {
+    ) private view returns (bool isValid, string memory reason) {
         if (ticketNumber > totalTickets)
             return (false, "Invalid Ticket Number");
         //check for valid signature

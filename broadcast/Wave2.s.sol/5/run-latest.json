@@ -1,0 +1,53 @@
+{
+  "transactions": [
+    {
+      "hash": "0x8d635600108b2a19b1da8f5c6345ff851efd5587d45f3bd3143cb24a3299caa3",
+      "transactionType": "CALL",
+      "contractName": "Pogs",
+      "contractAddress": "0x14253e118D0CFa90528BA864260397026f48b2af",
+      "function": "setSession(uint8)",
+      "arguments": [
+        "2"
+      ],
+      "rpc": "https://goerli.infura.io/v3/33978c8e5245402d8c8388ddc806ef1d",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x42c7ef198f8ac9888e2b1b73e5b71f1d4535194a",
+        "to": "0x14253e118d0cfa90528ba864260397026f48b2af",
+        "gas": "0x9ba1",
+        "value": "0x0",
+        "data": "0x3711e4e80000000000000000000000000000000000000000000000000000000000000002",
+        "nonce": "0x44",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [
+    {
+      "transactionHash": "0x8d635600108b2a19b1da8f5c6345ff851efd5587d45f3bd3143cb24a3299caa3",
+      "transactionIndex": "0x8",
+      "blockHash": "0x65f4273ac3b0afc447d5935213b5d9b8a4dc698a0170f0d287f7cc19e0306607",
+      "blockNumber": "0x85e626",
+      "from": "0x42C7eF198f8aC9888E2B1b73e5B71f1D4535194A",
+      "to": "0x14253e118D0CFa90528BA864260397026f48b2af",
+      "cumulativeGasUsed": "0x44bde",
+      "gasUsed": "0x70ad",
+      "contractAddress": null,
+      "logs": [],
+      "status": "0x1",
+      "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "type": "0x2",
+      "effectiveGasPrice": "0x2d6014af7"
+    }
+  ],
+  "libraries": [],
+  "pending": [],
+  "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/Wave2.s.sol/5/run-latest.json",
+  "returns": {},
+  "timestamp": 1680654772,
+  "chain": 5,
+  "multi": false,
+  "commit": "1b99f73"
+}

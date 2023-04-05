@@ -5,21 +5,25 @@ import "forge-std/Script.sol";
 
 import "../src/Pogs.sol";
 
-contract Deploy is Script {
+contract TransferOwnership is Script {
     // Deployments
     Pogs public pogs;
 
-    address signer = vm.envAddress("SIGNER_ADDRESS");
-    address withdrawer = vm.envAddress("WITHDRAW_ADDRESS");
-    address royalties = vm.envAddress("ROYALTY_ADDRESS");
+    address _pogsAddy = vm.envAddress("POGS_CONTRACT_ADDRESS");
+    address payable pogsAddy = payable(_pogsAddy);
+
+    address newOwner = vm.envAddress("TRANSFER_OWNERSHIP_ADDRESS");
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET_DEPLOYER");
 
+        pogs = Pogs(pogsAddy);
+
         //Deploy Contracts
         vm.startBroadcast(deployerPrivateKey);
 
-        pogs = new Pogs(signer, withdrawer, royalties);
+        // set revealed uri
+        pogs.transferOwnership(newOwner);
 
         vm.stopBroadcast();
     }

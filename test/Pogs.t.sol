@@ -64,6 +64,10 @@ contract PogsTest is Test {
         //set active session
         pogs.setSession(1);
 
+        //set mint price
+        uint256 mintPrice = .01 ether;
+        pogs.setMintPrice(mintPrice);
+
         //setWithdrawAddress
         pogs.setWithdrawAddress(withdrawAddress);
         uint256 bal = withdrawAddress.balance;
