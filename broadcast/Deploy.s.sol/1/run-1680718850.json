@@ -25,45 +25,14 @@
       "isFixedGasLimit": false
     }
   ],
-  "receipts": [
-    {
-      "transactionHash": "0x64dd5d85b657d3b8792faced5b62d30df652294e47f1ca950cb41f8fb8815264",
-      "transactionIndex": "0x1e",
-      "blockHash": "0x4eb2f408db08e665942e5b03530a16a91ac29e60dcb92a78fc9ce92cbbc71b0b",
-      "blockNumber": "0x10328ee",
-      "from": "0xec410f9f0dbd534d59f5560d66647a5710D0b3E4",
-      "to": null,
-      "cumulativeGasUsed": "0x671886",
-      "gasUsed": "0x4858c0",
-      "contractAddress": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
-      "logs": [
-        {
-          "address": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
-          "topics": [
-            "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x000000000000000000000000ec410f9f0dbd534d59f5560d66647a5710d0b3e4"
-          ],
-          "data": "0x",
-          "blockHash": "0x4eb2f408db08e665942e5b03530a16a91ac29e60dcb92a78fc9ce92cbbc71b0b",
-          "blockNumber": "0x10328ee",
-          "transactionHash": "0x64dd5d85b657d3b8792faced5b62d30df652294e47f1ca950cb41f8fb8815264",
-          "transactionIndex": "0x1e",
-          "logIndex": "0x3a",
-          "removed": false
-        }
-      ],
-      "status": "0x1",
-      "logsBloom": "0x00000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000001000000000000000000000000000000000000420000000000000000000800000000000000000000000000000000400000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000800000000004000000000000000000000000000000000000000000000000000",
-      "type": "0x2",
-      "effectiveGasPrice": "0x8e97a9097"
-    }
-  ],
+  "receipts": [],
   "libraries": [],
-  "pending": [],
+  "pending": [
+    "0x64dd5d85b657d3b8792faced5b62d30df652294e47f1ca950cb41f8fb8815264"
+  ],
   "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/Deploy.s.sol/1/run-latest.json",
   "returns": {},
-  "timestamp": 1680718862,
+  "timestamp": 1680718850,
   "chain": 1,
   "multi": false,
   "commit": "f455718"
