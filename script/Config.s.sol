@@ -18,8 +18,7 @@ contract Config is Script {
     string unrevealedUri = vm.envString("UNREVEALED_URI");
 
     function run() external {
-        // Testent
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET_DEPLOYER");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_MAINNET_DEPLOYER");
 
         pogs = Pogs(pogsAddy);
 

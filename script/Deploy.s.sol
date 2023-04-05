@@ -14,7 +14,7 @@ contract Deploy is Script {
     address royalties = vm.envAddress("ROYALTY_ADDRESS");
 
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET_DEPLOYER");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_MAINNET_DEPLOYER");
 
         //Deploy Contracts
         vm.startBroadcast(deployerPrivateKey);

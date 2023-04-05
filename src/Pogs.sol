@@ -19,8 +19,8 @@ contract Pogs is ERC721AQueryable, Ownable, ERC2981 {
     // CONSTANTS
     uint256 constant MAX_SUPPLY = 4_444;
     uint256 constant TICKETS_PER_BIN = 256;
-    uint256 constant TICKET_BINS = 100; // Starting Amount of Bins: STARTING_TICKETS / 256 + 1
-    uint256 constant STARTING_TICKETS = 25_600; // TICKET_BINS * TICKETS_PER_BIN
+    uint256 constant TICKET_BINS = 75; // Starting Amount of Bins: STARTING_TICKETS / 256 + 1
+    uint256 constant STARTING_TICKETS = 19_200; // TICKET_BINS * TICKETS_PER_BIN
 
     // PRIVATE VARS
     string private baseURI;
