@@ -1,0 +1,38 @@
+{
+  "transactions": [
+    {
+      "hash": "0x266d6e83709ed8010c2e5cceec16dc8e9fab9e6dae5a8096d7811e3b7a4a2432",
+      "transactionType": "CALL",
+      "contractName": "Pogs",
+      "contractAddress": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
+      "function": "setSession(uint8)",
+      "arguments": [
+        "3"
+      ],
+      "rpc": "https://compatible-virulent-putty.quiknode.pro/fe97d7c9816777bf412b5b6eaa5e6583660d6630/",
+      "transaction": {
+        "type": "0x02",
+        "from": "0xec410f9f0dbd534d59f5560d66647a5710d0b3e4",
+        "to": "0x84d81d50cf838477b6cdb62c2a55d55d93a677ee",
+        "gas": "0x9ba1",
+        "value": "0x0",
+        "data": "0x3711e4e80000000000000000000000000000000000000000000000000000000000000003",
+        "nonce": "0xa",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0x266d6e83709ed8010c2e5cceec16dc8e9fab9e6dae5a8096d7811e3b7a4a2432"
+  ],
+  "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/PublicMint.s.sol/1/run-latest.json",
+  "returns": {},
+  "timestamp": 1680805798,
+  "chain": 1,
+  "multi": false,
+  "commit": "0e6fba0"
+}

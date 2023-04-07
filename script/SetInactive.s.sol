@@ -17,7 +17,6 @@ contract SetInactive is Script {
 
         pogs = Pogs(pogsAddy);
 
-        //Deploy Contracts
         vm.startBroadcast(deployerPrivateKey);
 
         // set session inactive

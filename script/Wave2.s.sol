@@ -13,11 +13,10 @@ contract Wave2 is Script {
     address payable pogsAddy = payable(_pogsAddy);
 
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_TESTNET_DEPLOYER");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_MAINNET_DEPLOYER");
 
         pogs = Pogs(pogsAddy);
 
-        //Deploy Contracts
         vm.startBroadcast(deployerPrivateKey);
 
         // set session to Waitlist

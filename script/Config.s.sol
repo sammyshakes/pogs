@@ -10,6 +10,7 @@ contract Config is Script {
     Pogs public pogs;
 
     address _pogsAddy = vm.envAddress("POGS_CONTRACT_ADDRESS");
+
     address payable pogsAddy = payable(_pogsAddy);
 
     address mintForTeamAddress = vm.envAddress("MINT_FOR_TEAM_ADDRESS");
@@ -27,10 +28,12 @@ contract Config is Script {
 
         // set uris
         pogs.setUnrevealedURI(unrevealedUri);
-        pogs.mintForTeam(mintForTeamAddress, mintForTeamAmount);
+
+        //Mint For Team
+        // pogs.mintForTeam(mintForTeamAddress, mintForTeamAmount);
 
         // set session to Allowlist
-        pogs.setSession(1);
+        // pogs.setSession(1);
 
         vm.stopBroadcast();
     }

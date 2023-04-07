@@ -1,0 +1,38 @@
+{
+  "transactions": [
+    {
+      "hash": "0xeef377e422eca136abf34a15de9b644bef1f45f0116d3c090b6f41ed58a070ce",
+      "transactionType": "CALL",
+      "contractName": "Pogs",
+      "contractAddress": "0xe96E13E73f51707fB1c46A5c1a143d3F99334bbB",
+      "function": "setSession(uint8)",
+      "arguments": [
+        "3"
+      ],
+      "rpc": "https://goerli.infura.io/v3/33978c8e5245402d8c8388ddc806ef1d",
+      "transaction": {
+        "type": "0x02",
+        "from": "0x42c7ef198f8ac9888e2b1b73e5b71f1d4535194a",
+        "to": "0xe96e13e73f51707fb1c46a5c1a143d3f99334bbb",
+        "gas": "0x9ba1",
+        "value": "0x0",
+        "data": "0x3711e4e80000000000000000000000000000000000000000000000000000000000000003",
+        "nonce": "0x66",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0xeef377e422eca136abf34a15de9b644bef1f45f0116d3c090b6f41ed58a070ce"
+  ],
+  "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/PublicMint.s.sol/5/run-latest.json",
+  "returns": {},
+  "timestamp": 1680745982,
+  "chain": 5,
+  "multi": false,
+  "commit": "0e6fba0"
+}

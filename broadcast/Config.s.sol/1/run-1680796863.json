@@ -1,0 +1,87 @@
+{
+  "transactions": [
+    {
+      "hash": "0x239ac7e10492f33dbb96b680318335bf7d1c6bf986b81636ad41ced41e869f76",
+      "transactionType": "CALL",
+      "contractName": "Pogs",
+      "contractAddress": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
+      "function": "setUnrevealedURI(string)",
+      "arguments": [
+        "unrevealedUri"
+      ],
+      "rpc": "https://compatible-virulent-putty.quiknode.pro/fe97d7c9816777bf412b5b6eaa5e6583660d6630/",
+      "transaction": {
+        "type": "0x02",
+        "from": "0xec410f9f0dbd534d59f5560d66647a5710d0b3e4",
+        "to": "0x84d81d50cf838477b6cdb62c2a55d55d93a677ee",
+        "gas": "0x9150",
+        "value": "0x0",
+        "data": "0xfe2c7fee0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d756e72657665616c656455726900000000000000000000000000000000000000",
+        "nonce": "0x5",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    },
+    {
+      "hash": "0x30ba78211ee95f278fc612ff6b8cbaf6af062ed7c9effa0c5b8922fe6409fe38",
+      "transactionType": "CALL",
+      "contractName": "Pogs",
+      "contractAddress": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
+      "function": "mintForTeam(address,uint16)",
+      "arguments": [
+        "0x3Ce7D5657012Aee30663546Ebcb232bE875745BD",
+        "644"
+      ],
+      "rpc": "https://compatible-virulent-putty.quiknode.pro/fe97d7c9816777bf412b5b6eaa5e6583660d6630/",
+      "transaction": {
+        "type": "0x02",
+        "from": "0xec410f9f0dbd534d59f5560d66647a5710d0b3e4",
+        "to": "0x84d81d50cf838477b6cdb62c2a55d55d93a677ee",
+        "gas": "0x1c4d16",
+        "value": "0x0",
+        "data": "0xdaddacd30000000000000000000000003ce7d5657012aee30663546ebcb232be875745bd0000000000000000000000000000000000000000000000000000000000000284",
+        "nonce": "0x6",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    },
+    {
+      "hash": "0x0629b02d4c7b76ef022f16c54dc2b2e09b9863fbaba598b340201ae9958d4acd",
+      "transactionType": "CALL",
+      "contractName": "Pogs",
+      "contractAddress": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
+      "function": "setSession(uint8)",
+      "arguments": [
+        "1"
+      ],
+      "rpc": "https://compatible-virulent-putty.quiknode.pro/fe97d7c9816777bf412b5b6eaa5e6583660d6630/",
+      "transaction": {
+        "type": "0x02",
+        "from": "0xec410f9f0dbd534d59f5560d66647a5710d0b3e4",
+        "to": "0x84d81d50cf838477b6cdb62c2a55d55d93a677ee",
+        "gas": "0x1067a",
+        "value": "0x0",
+        "data": "0x3711e4e80000000000000000000000000000000000000000000000000000000000000001",
+        "nonce": "0x7",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0x239ac7e10492f33dbb96b680318335bf7d1c6bf986b81636ad41ced41e869f76",
+    "0x30ba78211ee95f278fc612ff6b8cbaf6af062ed7c9effa0c5b8922fe6409fe38",
+    "0x0629b02d4c7b76ef022f16c54dc2b2e09b9863fbaba598b340201ae9958d4acd"
+  ],
+  "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/Config.s.sol/1/run-latest.json",
+  "returns": {},
+  "timestamp": 1680796863,
+  "chain": 1,
+  "multi": false,
+  "commit": "0e6fba0"
+}

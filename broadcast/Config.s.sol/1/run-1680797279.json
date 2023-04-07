@@ -1,0 +1,38 @@
+{
+  "transactions": [
+    {
+      "hash": "0x5c1f7e77cdb5b303f3724975880a1e904f3df8a9fafe9a1d3294cf48f764f3bc",
+      "transactionType": "CALL",
+      "contractName": "Pogs",
+      "contractAddress": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
+      "function": "setUnrevealedURI(string)",
+      "arguments": [
+        "https://gateway.pinata.cloud/ipfs/QmZ1JFSkdZsphHTXEhMeYyowYW1o4XLak25ZQwSszzByj5"
+      ],
+      "rpc": "https://compatible-virulent-putty.quiknode.pro/fe97d7c9816777bf412b5b6eaa5e6583660d6630/",
+      "transaction": {
+        "type": "0x02",
+        "from": "0xec410f9f0dbd534d59f5560d66647a5710d0b3e4",
+        "to": "0x84d81d50cf838477b6cdb62c2a55d55d93a677ee",
+        "gas": "0x20d53",
+        "value": "0x0",
+        "data": "0xfe2c7fee0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000005068747470733a2f2f676174657761792e70696e6174612e636c6f75642f697066732f516d5a314a46536b645a73706848545845684d6559796f775957316f34584c616b32355a517753737a7a42796a3500000000000000000000000000000000",
+        "nonce": "0x8",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0x5c1f7e77cdb5b303f3724975880a1e904f3df8a9fafe9a1d3294cf48f764f3bc"
+  ],
+  "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/Config.s.sol/1/run-latest.json",
+  "returns": {},
+  "timestamp": 1680797279,
+  "chain": 1,
+  "multi": false,
+  "commit": "0e6fba0"
+}

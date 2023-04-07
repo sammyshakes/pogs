@@ -1,23 +1,23 @@
 {
   "transactions": [
     {
-      "hash": "0x6b9b8fca55574be9b37c956daad49fe5526531d2103f7b6b08f2870f1e8aaf16",
+      "hash": "0x898bd2acf7159e1fad0bfa90920e4fce7e1a5e482225ca2de621a87acb3be9fe",
       "transactionType": "CALL",
       "contractName": "Pogs",
-      "contractAddress": "0xe96E13E73f51707fB1c46A5c1a143d3F99334bbB",
+      "contractAddress": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
       "function": "setSession(uint8)",
       "arguments": [
         "2"
       ],
-      "rpc": "https://goerli.infura.io/v3/33978c8e5245402d8c8388ddc806ef1d",
+      "rpc": "https://compatible-virulent-putty.quiknode.pro/fe97d7c9816777bf412b5b6eaa5e6583660d6630/",
       "transaction": {
         "type": "0x02",
-        "from": "0x42c7ef198f8ac9888e2b1b73e5b71f1d4535194a",
-        "to": "0xe96e13e73f51707fb1c46a5c1a143d3f99334bbb",
+        "from": "0xec410f9f0dbd534d59f5560d66647a5710d0b3e4",
+        "to": "0x84d81d50cf838477b6cdb62c2a55d55d93a677ee",
         "gas": "0x9ba1",
         "value": "0x0",
         "data": "0x3711e4e80000000000000000000000000000000000000000000000000000000000000002",
-        "nonce": "0x65",
+        "nonce": "0x9",
         "accessList": []
       },
       "additionalContracts": [],
@@ -26,28 +26,28 @@
   ],
   "receipts": [
     {
-      "transactionHash": "0x6b9b8fca55574be9b37c956daad49fe5526531d2103f7b6b08f2870f1e8aaf16",
-      "transactionIndex": "0x1a",
-      "blockHash": "0x0a86eb811b1b0b846503156a16730a2c08510b4cf1e34c3a9389e341e46903f5",
-      "blockNumber": "0x85fd59",
-      "from": "0x42C7eF198f8aC9888E2B1b73e5B71f1D4535194A",
-      "to": "0xe96E13E73f51707fB1c46A5c1a143d3F99334bbB",
-      "cumulativeGasUsed": "0x1af545",
+      "transactionHash": "0x898bd2acf7159e1fad0bfa90920e4fce7e1a5e482225ca2de621a87acb3be9fe",
+      "transactionIndex": "0x32",
+      "blockHash": "0x11b387b1d5d4031a4cb3ccdff2aa02f5d7fbfc904ba3de78aaca049725d7b422",
+      "blockNumber": "0x10343d0",
+      "from": "0xec410f9f0dbd534d59f5560d66647a5710D0b3E4",
+      "to": "0x84D81D50cF838477B6Cdb62C2A55D55d93A677eE",
+      "cumulativeGasUsed": "0x4c72b7",
       "gasUsed": "0x70ad",
       "contractAddress": null,
       "logs": [],
       "status": "0x1",
       "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
       "type": "0x2",
-      "effectiveGasPrice": "0x8beb3de60"
+      "effectiveGasPrice": "0xa2e77abd5"
     }
   ],
   "libraries": [],
   "pending": [],
-  "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/Wave2.s.sol/5/run-latest.json",
+  "path": "/home/shakes/pineapple/pogs/pog-mint-contract/broadcast/Wave2.s.sol/1/run-latest.json",
   "returns": {},
-  "timestamp": 1680745051,
-  "chain": 5,
+  "timestamp": 1680804018,
+  "chain": 1,
   "multi": false,
   "commit": "0e6fba0"
 }
